@@ -360,6 +360,26 @@ Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) fi
 
 ---
 
+## Creators
+
+Polytheme is built by:
+
+**Taiwo Hammed**
+
+- X — [x.com/hammedt20_](https://x.com/hammedt20_)
+- LinkedIn — [linkedin.com/in/taiwo-hammed](https://www.linkedin.com/in/taiwo-hammed)
+- GitHub — [github.com/hammedt20](https://github.com/hammedt20)
+- Portfolio — [taiwo-hammed.netlify.app](https://taiwo-hammed.netlify.app/)
+
+**Akorede J. Ayanbisi**
+
+- X — [x.com/aj_ayanbisi](https://x.com/aj_ayanbisi)
+- LinkedIn — [linkedin.com/in/ajayanbisi](https://www.linkedin.com/in/ajayanbisi/)
+- GitHub — [github.com/ajayanbisi](https://github.com/ajayanbisi)
+- Portfolio — [ayanbisi.com](https://ayanbisi.com/)
+
+---
+
 ## License
 
 [MIT](./LICENSE) © 2026 Polytheme and Contributors
