@@ -7,7 +7,7 @@
 A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme — light, dark, brand, and beyond.
 
 [![npm version](https://img.shields.io/npm/v/polytheme.svg)](https://www.npmjs.com/package/polytheme)
-[![license](https://img.shields.io/github/license/Polytheme/Polytheme.svg)](./LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![PostCSS](https://img.shields.io/badge/PostCSS-plugin-dd3a0a.svg)](https://postcss.org)
 
 [Website](https://polytheme.dev) · [Docs](https://polytheme.dev/docs.html) · [Playground](https://polytheme.dev/#playground) · [npm](https://www.npmjs.com/package/polytheme)
