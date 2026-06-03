@@ -362,12 +362,14 @@ Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) fi
 
 ## License
 
-[MIT](./LICENSE) © 2026 Polytheme
+[MIT](./LICENSE) © 2026 Polytheme and Contributors
 
 ---
 
 <div align="center">
 
-Built with care to save you from writing the same line twice.
+Built by Taiwo Hammed & Akorede J. Ayanbisi
+
+Made with care to save you from writing the same line twice.
 
 </div>
