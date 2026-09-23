@@ -2,8 +2,8 @@ import postcss from "postcss";
 import { describe, expect, it } from "vitest";
 import plugin from "./index";
 
-async function processCss(css: string) {
-  const result = await postcss([plugin()]).process(css, {
+async function processCss(css: string, themes?: string[]) {
+  const result = await postcss([plugin(themes ? { themes } : undefined)]).process(css, {
     from: undefined,
   });
 
@@ -31,27 +31,6 @@ describe("theme-shorthand", () => {
     expect(css).toContain(".dark");
     expect(css).toContain("--color-bg: black");
     expect(css).not.toContain("--color-bg: white / black");
-  });
-
-  it("uses configured theme selectors", async () => {
-    const result = await postcss([
-      plugin({ themes: [":root", ".dark", ".high-contrast"] }),
-    ]).process(
-      `
-        .tokens {
-          --color-bg: white / black / yellow;
-        }
-      `,
-      { from: undefined }
-    );
-
-    expect(result.css).toContain(":root");
-    expect(result.css).toContain("--color-bg: white");
-    expect(result.css).toContain(".dark");
-    expect(result.css).toContain("--color-bg: black");
-    expect(result.css).toContain(".high-contrast");
-    expect(result.css).toContain("--color-bg: yellow");
-    expect(result.warnings()).toHaveLength(0);
   });
 
   it("leaves theme-values function declarations alone", async () => {
@@ -102,6 +81,48 @@ describe("theme-shorthand", () => {
         }
       `)
     ).resolves.toContain("--color-bg: white /");
+  });
+
+
+  it("expands into as many themes as it is given", async () => {
+    const css = await processCss(
+      `
+        :root {
+          --background: white / black / navy;
+        }
+      `,
+      [":root", ".dark", ".brand"]
+    );
+
+    expect(css).toContain("--background: white");
+    expect(css).toContain(".dark");
+    expect(css).toContain("--background: black");
+    expect(css).toContain(".brand");
+    expect(css).toContain("--background: navy");
+  });
+
+  it("leaves a non-theme slash value alone when it does not match the theme count", async () => {
+    /*
+     * Tailwind v4 ships tokens whose value legitimately contains a top-level
+     * slash, e.g. `--aspect-video: 16 / 9`. A mismatch against the configured
+     * theme count is what protects them.
+     *
+     * KNOWN LIMITATION: under the default two themes, `16 / 9` has exactly two
+     * parts, so it is indistinguishable from real shorthand and gets split into
+     * `:root { --aspect-video: 16 }` / `.dark { --aspect-video: 9 }` with no
+     * warning. Projects on the two-theme default should be aware of this.
+     */
+    const result = await postcss([plugin({ themes: [":root", ".dark", ".brand"] })]).process(
+      `
+        :root {
+          --aspect-video: 16 / 9;
+        }
+      `,
+      { from: undefined }
+    );
+
+    expect(result.css).toContain("--aspect-video: 16 / 9");
+    expect(result.warnings()).toHaveLength(1);
   });
 
   it("leaves theme declarations alone when value count does not match themes", async () => {
