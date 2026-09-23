@@ -33,6 +33,27 @@ describe("theme-shorthand", () => {
     expect(css).not.toContain("--color-bg: white / black");
   });
 
+  it("uses configured theme selectors", async () => {
+    const result = await postcss([
+      plugin({ themes: [":root", ".dark", ".high-contrast"] }),
+    ]).process(
+      `
+        .tokens {
+          --color-bg: white / black / yellow;
+        }
+      `,
+      { from: undefined }
+    );
+
+    expect(result.css).toContain(":root");
+    expect(result.css).toContain("--color-bg: white");
+    expect(result.css).toContain(".dark");
+    expect(result.css).toContain("--color-bg: black");
+    expect(result.css).toContain(".high-contrast");
+    expect(result.css).toContain("--color-bg: yellow");
+    expect(result.warnings()).toHaveLength(0);
+  });
+
   it("leaves theme-values function declarations alone", async () => {
     await expect(
       processCss(`

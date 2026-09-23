@@ -1,7 +1,7 @@
 {
   "name": "polytheme",
-  "version": "1.0.3",
-  "description": "",
+  "version": "1.0.7",
+  "description": "A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme — light, dark, brand, and beyond.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -16,7 +16,28 @@
     "check": "tsc --noEmit",
     "test": "vitest run"
   },
-  "keywords": [],
+  "homepage": "https://polytheme.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polytheme/polytheme.git"
+  },
+  "bugs": {
+    "url": "https://github.com/polytheme/polytheme/issues"
+  },
+  "keywords": [
+    "postcss",
+    "postcss-plugin",
+    "css",
+    "css-variables",
+    "custom-properties",
+    "design-tokens",
+    "theming",
+    "dark-mode",
+    "tailwind",
+    "tailwindcss",
+    "theme",
+    "design-system"
+  ],
   "author": "",
   "license": "MIT",
   "type": "commonjs",
