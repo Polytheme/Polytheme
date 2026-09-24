@@ -1,0 +1,72 @@
+# Publishes to npm when a version tag is pushed.
+#
+# There is no token here and none stored in the repo. npm trusts this workflow
+# through OIDC: GitHub mints a short-lived identity for the run, npm checks it
+# against the trusted publisher registered on the package, and accepts the
+# publish. That is the only route left — npm has retired the tokens that used
+# to bypass 2FA, and a granular token cannot write without a one-time code.
+#
+# Registered on npmjs.com against this exact filename, so renaming this file
+# breaks publishing until the trusted publisher is updated to match.
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+  # A tag already on the remote will not fire a push event again, so a rerun
+  # after a failed job has to be startable by hand.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to publish, e.g. v1.0.8"
+        required: true
+
+permissions:
+  contents: read
+  # The whole mechanism. Without it the OIDC token is never minted and npm
+  # falls back to asking for credentials that do not exist here.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # On a manual run the default ref is the branch, which may have moved
+          # past the tag being published.
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing landed in npm 11.5.1; the npm bundled with Node 22
+      # is older and would try to authenticate the old way.
+      - name: Use an npm that supports trusted publishing
+        run: npm install -g npm@latest
+
+      - run: npm ci
+
+      # The tag is what triggered this run, so it is the only claim about which
+      # version is being published. If it disagrees with package.json, the tag
+      # was pushed by hand or the bump commit was amended — either way stop
+      # before putting the wrong version on the registry.
+      - name: Check the tag matches package.json
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          tag="${TAG#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "Tag $TAG does not match package.json version $pkg" >&2
+            exit 1
+          fi
+          echo "Publishing $pkg"
+
+      - run: npm test
+
+      # prepublishOnly builds; dist is gitignored, so this is what fills it.
+      - run: npm publish
