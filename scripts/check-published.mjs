@@ -67,7 +67,15 @@ const digest = (file) => createHash("sha256").update(readFileSync(file)).digest(
 
 try {
   /*
-   * `npm pack` honours `files`, `.npmignore` and `prepublishOnly`, so these are
+   * Build first. `npm pack` does NOT run `prepublishOnly` — only `npm publish`
+   * does — so on a clean checkout dist/ is simply absent, `files: ["dist"]`
+   * matches nothing, and every shipped file reads as drifted. Locally that goes
+   * unnoticed because a previous build is usually still sitting there.
+   */
+  run("npm", ["run", "build"], { cwd: new URL("..", import.meta.url).pathname });
+
+  /*
+   * `npm pack` honours `files` and `.npmignore`, so these are
    * the real tarballs rather than a guess at them. They must land in separate
    * directories: both are named <name>-<version>.tgz, so packing them side by
    * side silently overwrites the first with the second and every comparison
