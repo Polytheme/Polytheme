@@ -51,16 +51,79 @@ describe("theme-shorthand", () => {
         }
       `);
 
+    // The :root values keep the source's own indentation now that they are
+    // rewritten where they stood; the appended .dark rule is generated.
     expect(css.trim()).toMatchInlineSnapshot(`
       ":root {
-          --background: lab(100% 0 0);
-          --foreground: lab(2.75381% 0 0)
-      }
+                --background: lab(100% 0 0);
+                --foreground: lab(2.75381% 0 0);
+              }
       .dark {
-          --background: lab(2.75381% 0 0);
-          --foreground: lab(98.26% 0 0)
+                --background: lab(2.75381% 0 0);
+                --foreground: lab(98.26% 0 0);
       }"
     `);
+  });
+
+  /*
+   * The first theme is written back where the shorthand stood, rather than
+   * hoisted into a new rule at the end. Before this, a :root holding anything
+   * else — a plain token, or the `order:` comment the docs recommend — was left
+   * behind empty while its values reappeared further down, so a file following
+   * the documented style always produced two :root rules.
+   */
+  describe("expanding the first theme in place", () => {
+    it("keeps a comment with the values it describes, and adds no second :root", async () => {
+      const css = await processCss(`
+:root {
+  /* order: light / dark */
+  --background: white / black;
+}
+      `);
+
+      expect(css).toContain("/* order: light / dark */");
+      expect(css.match(/:root/g)).toHaveLength(1);
+      expect(css.indexOf("--background: white")).toBeGreaterThan(css.indexOf("order: light"));
+    });
+
+    it("leaves a plain token sitting alongside the expanded ones", async () => {
+      const css = await processCss(`
+:root {
+  --radius: 12px;
+  --background: white / black;
+}
+      `);
+
+      const root = css.slice(0, css.indexOf(".dark"));
+      expect(root).toContain("--radius: 12px");
+      expect(root).toContain("--background: white");
+      expect(css.match(/:root/g)).toHaveLength(1);
+    });
+
+    it("still hoists shorthand written under some other selector", async () => {
+      const css = await processCss(`
+.card {
+  --x: red / blue;
+}
+      `);
+
+      // The themes come from the config, never from the rule it was written in.
+      expect(css).toContain(":root");
+      expect(css).toContain("--x: red");
+      expect(css).toContain(".dark");
+      expect(css).toContain("--x: blue");
+      expect(css).not.toMatch(/\.card\s*\{[^}]*--x/);
+    });
+
+    it("removes a rule that held nothing but shorthand", async () => {
+      const css = await processCss(`
+.card {
+  --x: red / blue;
+}
+      `);
+
+      expect(css).not.toContain(".card");
+    });
   });
 
   it("leaves regular declarations alone", async () => {
