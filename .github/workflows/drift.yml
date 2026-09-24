@@ -1,0 +1,43 @@
+# Fails when this branch would ship something the registry does not have.
+#
+# npm versions are immutable, so a change to a published file that lands after
+# the tag cannot reach anyone at that version — it is simply invisible until
+# somebody notices and cuts another release. That is how the peer-dependency
+# change sat unpublished for months, and how the README's no-JavaScript section
+# shipped a version behind the feature it describes.
+#
+# check:published packs this checkout and diffs it against the tarball npm is
+# serving, so the moment a shipped file drifts, main goes red instead of waiting
+# to be asked about.
+name: Drift
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Catches the other direction too: someone publishing from elsewhere.
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      # A tag push is a release in progress: the version is deliberately ahead
+      # of the registry until the staged publish is approved, which is not drift.
+      - name: Compare this checkout with what npm serves
+        run: npm run check:published
