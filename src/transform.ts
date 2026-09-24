@@ -1,4 +1,13 @@
-import postcss, { type Comment, type Result, type Root, type Rule } from "postcss";
+import postcss, {
+  type AtRule,
+  type ChildNode,
+  type Comment,
+  type Container,
+  type Declaration,
+  type Result,
+  type Root,
+  type Rule,
+} from "postcss";
 import { extractThemeValues, hasThemeShorthandSyntax } from "./parser";
 
 /*
@@ -22,24 +31,99 @@ import { extractThemeValues, hasThemeShorthandSyntax } from "./parser";
  */
 const IGNORE = /^\s*polytheme-ignore\s*$/;
 
+/*
+ * At-rules that group style rules, and so can hold an expansion.
+ *
+ * Expansions used to be appended to the document root no matter where the
+ * shorthand was written, which quietly changed what they meant: a value inside
+ * `@layer base` came back out unlayered and so outranked the rest of the layer,
+ * one inside `@supports` applied even where the feature was missing, and one
+ * inside `@media (min-width: 40rem)` applied at every width. Two shorthands in
+ * different layers even merged into a single rule.
+ *
+ * Anything not on this list is not a container — `@keyframes` most of all,
+ * where a `:root` would be nonsense — so those still hoist to the root.
+ */
+const GROUPING_AT_RULES = new Set([
+  "media",
+  "supports",
+  "layer",
+  "container",
+  "scope",
+  "document",
+]);
+
+/** The nearest grouping at-rule around a declaration, or the root. */
+function containerOf(decl: Declaration, root: Root): Container {
+  let node: Container | undefined = decl.parent as Container | undefined;
+
+  while (node && node.type !== "root") {
+    if (node.type === "atrule" && GROUPING_AT_RULES.has((node as AtRule).name.toLowerCase())) {
+      return node;
+    }
+    node = node.parent as Container | undefined;
+  }
+
+  return node ?? root;
+}
+
+/*
+ * Builds the node a theme's values go into.
+ *
+ * A theme is usually a selector, but it may be an at-rule — `@media
+ * (prefers-color-scheme: dark)` is the obvious one, and gives class-free
+ * theming that follows the operating system. Declarations cannot sit directly
+ * in an at-rule, so it gets a `:root` to hold them; without that the output was
+ * a block of declarations with nothing to apply them to, which browsers discard
+ * silently.
+ */
+function createThemeNode(theme: string): { node: ChildNode; target: Container } {
+  if (!theme.trimStart().startsWith("@")) {
+    const rule = postcss.rule({ selector: theme });
+    return { node: rule, target: rule };
+  }
+
+  const match = theme.trim().match(/^@([\w-]+)\s*([\s\S]*)$/);
+
+  if (!match) {
+    const rule = postcss.rule({ selector: theme });
+    return { node: rule, target: rule };
+  }
+
+  const atRule = postcss.atRule({ name: match[1], params: match[2].trim() });
+  const inner = postcss.rule({ selector: ":root" });
+  atRule.append(inner);
+
+  return { node: atRule, target: inner };
+}
+
 export function transformThemeShorthand(
   root: Root,
   themes: string[],
   result: Result
 ) {
-  const groupedRules = new Map<string, Rule>();
+  // Keyed by container first: two shorthands under different at-rules must not
+  // share an expansion, however alike their themes look.
+  const grouped = new Map<Container, Map<string, { node: ChildNode; target: Container }>>();
   const touchedRules = new Set<Rule>();
   const directives = new Set<Comment>();
 
-  const getRule = (selector: string) => {
-    let rule = groupedRules.get(selector);
+  const getTarget = (container: Container, theme: string) => {
+    let byTheme = grouped.get(container);
 
-    if (!rule) {
-      rule = postcss.rule({ selector });
-      groupedRules.set(selector, rule);
+    if (!byTheme) {
+      byTheme = new Map();
+      grouped.set(container, byTheme);
     }
 
-    return rule;
+    let entry = byTheme.get(theme);
+
+    if (!entry) {
+      entry = createThemeNode(theme);
+      byTheme.set(theme, entry);
+    }
+
+    return entry.target;
   };
 
   root.walkDecls((decl) => {
@@ -106,7 +190,7 @@ export function transformThemeShorthand(
         return;
       }
 
-      getRule(selector).append({
+      getTarget(containerOf(decl, root), selector).append({
         prop: decl.prop,
         value,
       });
@@ -129,7 +213,9 @@ export function transformThemeShorthand(
     }
   }
 
-  for (const rule of groupedRules.values()) {
-    root.append(rule);
+  for (const [container, byTheme] of grouped) {
+    for (const { node } of byTheme.values()) {
+      container.append(node);
+    }
   }
 }
