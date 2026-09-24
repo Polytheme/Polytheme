@@ -11,11 +11,17 @@
  * leaves a local commit and tag to amend rather than a version the world can
  * see but not install.
  *
- *   npm run release -- patch        1.0.7 -> 1.0.8
- *   npm run release -- minor        1.0.7 -> 1.1.0
- *   npm run release -- 1.2.0        an exact version
- *   npm run release -- patch --dry-run   rehearse without publishing
- *   npm run release -- patch --no-site   leave the website alone
+ * An account with 2FA on writes needs a code: npm errors EOTP rather than
+ * prompting when it is not driving the terminal itself. Pass --otp. If a
+ * publish failed after the bump, re-running resumes from the version already
+ * committed and tagged instead of bumping a second time.
+ *
+ *   npm run release -- patch                  1.0.7 -> 1.0.8
+ *   npm run release -- minor                  1.0.7 -> 1.1.0
+ *   npm run release -- 1.2.0                  an exact version
+ *   npm run release -- patch --otp=123456     2FA code
+ *   npm run release -- patch --dry-run        rehearse without publishing
+ *   npm run release -- patch --no-site        leave the website alone
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -24,10 +30,12 @@ import { dirname, join, resolve } from "node:path";
 
 const PLUGIN = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = resolve(PLUGIN, "..", "Website");
+const { name } = JSON.parse(readFileSync(join(PLUGIN, "package.json"), "utf8"));
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const skipSite = args.includes("--no-site");
+const otp = args.find((a) => a.startsWith("--otp="))?.slice("--otp=".length);
 const bump = args.find((a) => !a.startsWith("--"));
 
 if (!bump) {
@@ -74,6 +82,22 @@ if (haveSite) {
   assertReleasable(SITE, "The website repo");
 }
 
+/*
+ * A publish that failed after the bump leaves the version committed and tagged
+ * but absent from the registry. Bumping again there would burn a version
+ * number for nothing and leave a tag pointing at something unpublished, so the
+ * run picks up where it stopped instead.
+ */
+const current = JSON.parse(readFileSync(join(PLUGIN, "package.json"), "utf8")).version;
+const tagged = sh("git", ["tag", "--list", `v${current}`]) === `v${current}`;
+let publishedAlready = true;
+try {
+  sh("npm", ["view", `${name}@${current}`, "version"]);
+} catch {
+  publishedAlready = false;
+}
+const resuming = tagged && !publishedAlready;
+
 step("running the tests");
 loud("npm", ["test"]);
 
@@ -87,7 +111,15 @@ if (dryRun) {
    * useless for a rehearsal — the one thing a dry run must never do is leave
    * the repo changed.
    */
-  const current = JSON.parse(readFileSync(join(PLUGIN, "package.json"), "utf8")).version;
+  if (resuming) {
+    console.log(
+      `\n✓ dry run — ${current} is committed and tagged but not on npm,` +
+        `\n  so a real run would publish it as-is${haveSite ? " and update the website" : ""}`,
+    );
+    console.log("  nothing was written; drop --dry-run to do it for real");
+    process.exit(0);
+  }
+
   const [major, minor, patch] = current.split(".").map(Number);
   const next =
     bump === "major" ? `${major + 1}.0.0`
@@ -100,18 +132,30 @@ if (dryRun) {
   process.exit(0);
 }
 
-step(`bumping the version (${bump})`);
-// `npm version` writes package.json, commits and tags in one go.
-const version = sh("npm", ["version", bump, "-m", "Release %s"]).replace(/^v/, "");
-console.log(`  ${version}`);
+let version;
+if (resuming) {
+  step(`resuming ${current}`);
+  console.log("  already committed and tagged by an earlier run; not bumping again");
+  version = current;
+} else {
+  step(`bumping the version (${bump})`);
+  // `npm version` writes package.json, commits and tags in one go.
+  version = sh("npm", ["version", bump, "-m", "Release %s"]).replace(/^v/, "");
+  console.log(`  ${version}`);
+}
 
 step("publishing to npm");
 try {
-  loud("npm", ["publish"]);
+  loud("npm", ["publish", ...(otp ? [`--otp=${otp}`] : [])]);
 } catch {
   die(
-    `npm publish failed. The bump commit and tag v${version} are local only.\n` +
-      `  Fix the cause, then:  git reset --hard HEAD~1 && git tag -d v${version}`,
+    `npm publish failed. ${version} is committed and tagged locally, and nothing\n` +
+      `  has been pushed — polytheme.dev and the registry are both untouched.\n\n` +
+      `  If the error was EOTP, your account requires a 2FA code:\n` +
+      `      npm run release -- ${bump} --otp=<6 digits>\n` +
+      `  Re-running resumes from ${version} rather than bumping again.\n\n` +
+      `  To abandon the release instead:\n` +
+      `      git reset --hard HEAD~1 && git tag -d v${version}`,
   );
 }
 
