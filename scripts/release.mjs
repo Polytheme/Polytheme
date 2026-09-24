@@ -81,8 +81,22 @@ step("building");
 loud("npm", ["run", "build"]);
 
 if (dryRun) {
-  const next = sh("npm", ["version", bump, "--no-git-tag-version", "--dry-run"]).replace(/^v/, "");
-  console.log(`\n✓ dry run — would publish ${next}${haveSite ? " and update the website" : ""}`);
+  /*
+   * Worked out here rather than asked of npm: `npm version --dry-run` still
+   * writes package.json and package-lock.json on this npm, which makes it
+   * useless for a rehearsal — the one thing a dry run must never do is leave
+   * the repo changed.
+   */
+  const current = JSON.parse(readFileSync(join(PLUGIN, "package.json"), "utf8")).version;
+  const [major, minor, patch] = current.split(".").map(Number);
+  const next =
+    bump === "major" ? `${major + 1}.0.0`
+    : bump === "minor" ? `${major}.${minor + 1}.0`
+    : bump === "patch" ? `${major}.${minor}.${patch + 1}`
+    : bump;
+
+  console.log(`\n✓ dry run — would publish ${current} -> ${next}${haveSite ? " and update the website" : ""}`);
+  console.log("  nothing was written; drop --dry-run to do it for real");
   process.exit(0);
 }
 
