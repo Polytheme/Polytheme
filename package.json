@@ -45,6 +45,7 @@
     "test": "vitest run",
     "check:published": "node scripts/check-published.mjs",
     "release": "node scripts/release.mjs",
+    "sync-site": "node scripts/release.mjs --site-only",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
