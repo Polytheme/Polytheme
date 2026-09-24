@@ -72,6 +72,58 @@ describe("theme-shorthand", () => {
    * behind empty while its values reappeared further down, so a file following
    * the documented style always produced two :root rules.
    */
+  describe("the polytheme-ignore directive", () => {
+    it("leaves the declaration it precedes alone", async () => {
+      const css = await processCss(`
+:root {
+  /* polytheme-ignore */
+  --ratio: 16 / 9;
+}
+      `);
+
+      expect(css).toContain("--ratio: 16 / 9");
+      expect(css).not.toContain(".dark");
+    });
+
+    it("does not leave the directive in the output", async () => {
+      const css = await processCss(`
+:root {
+  /* polytheme-ignore */
+  --ratio: 16 / 9;
+}
+      `);
+
+      expect(css).not.toContain("polytheme-ignore");
+    });
+
+    it("covers only the declaration immediately after it", async () => {
+      const css = await processCss(`
+:root {
+  /* polytheme-ignore */
+  --ratio: 16 / 9;
+  --background: white / black;
+}
+      `);
+
+      expect(css).toContain("--ratio: 16 / 9");
+      expect(css).toContain("--background: white");
+      expect(css).toContain(".dark");
+    });
+
+    it("leaves ordinary comments and their declarations working", async () => {
+      const css = await processCss(`
+:root {
+  /* order: light / dark */
+  --background: white / black;
+}
+      `);
+
+      expect(css).toContain("/* order: light / dark */");
+      expect(css).toContain("--background: white");
+      expect(css).toContain(".dark");
+    });
+  });
+
   describe("expanding the first theme in place", () => {
     it("keeps a comment with the values it describes, and adds no second :root", async () => {
       const css = await processCss(`
