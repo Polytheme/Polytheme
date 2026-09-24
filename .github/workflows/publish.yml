@@ -66,6 +66,20 @@ jobs:
           fi
           echo "Publishing $pkg"
 
+      # Provenance validation compares this against the repository the run came
+      # from, case-sensitively, and rejects the whole stage if they differ. It
+      # is a cheap thing to check here and an opaque 422 to debug there.
+      - name: Check repository.url matches this repo
+        run: |
+          want="https://github.com/$GITHUB_REPOSITORY"
+          got="$(node -p "require('./package.json').repository.url.replace(/^git\+/, '').replace(/\.git$/, '')")"
+          if [ "$got" != "$want" ]; then
+            echo "package.json repository.url is $got, expected $want" >&2
+            echo "Provenance is case-sensitive, so this must match exactly." >&2
+            exit 1
+          fi
+          echo "repository.url $got"
+
       - run: npm test
 
       # `stage publish`, not `publish`: the trusted publisher is registered for

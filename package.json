@@ -18,11 +18,11 @@
   ],
   "homepage": "https://polytheme.dev",
   "bugs": {
-    "url": "https://github.com/polytheme/polytheme/issues"
+    "url": "https://github.com/Polytheme/Polytheme/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/polytheme/polytheme.git"
+    "url": "git+https://github.com/Polytheme/Polytheme.git"
   },
   "license": "MIT",
   "author": "",
