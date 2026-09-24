@@ -10,7 +10,7 @@ A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![PostCSS](https://img.shields.io/badge/PostCSS-plugin-dd3a0a.svg)](https://postcss.org)
 
-[Website](https://polytheme.dev) · [Docs](https://polytheme.dev/docs.html) · [Playground](https://polytheme.dev/#playground) · [npm](https://www.npmjs.com/package/polytheme)
+[Website](https://polytheme.dev) · [Docs](https://polytheme.dev/docs/) · [Playground](https://polytheme.dev/playground/) · [npm](https://www.npmjs.com/package/polytheme)
 
 </div>
 
@@ -366,7 +366,7 @@ mq.addEventListener("change", apply);
 
 Put the script in the `<head>` of your app's root HTML, **before any content renders** — so the right theme class is on `<html>` before the first paint and users never see a flash of the wrong theme.
 
-> See the [System preference guide](https://polytheme.dev/docs.html#system-preference) for where exactly to place it in HTML, Next.js, Vite, and Astro.
+> See the [System preference guide](https://polytheme.dev/docs/system-preference/) for where exactly to place it in HTML, Next.js, Vite, and Astro.
 
 ---
 
@@ -374,7 +374,7 @@ Put the script in the `<head>` of your app's root HTML, **before any content ren
 
 Already have hand-written `:root` / `.dark` / `.brand` blocks? You don't need to rewrite them.
 
-The [Polytheme playground](https://polytheme.dev/#playground) runs the transform **both ways**. Switch it to **CSS → Polytheme**, paste your existing theme blocks, and it returns the equivalent shorthand — ready to drop back into your stylesheet. Values that just inherit `:root` get trimmed automatically, so you get the minimal correct output, not bloat.
+The [Polytheme playground](https://polytheme.dev/playground/) runs the transform **both ways**. Switch it to **CSS → Polytheme**, paste your existing theme blocks, and it returns the equivalent shorthand — ready to drop back into your stylesheet. Values that just inherit `:root` get trimmed automatically, so you get the minimal correct output, not bloat.
 
 ---
 
