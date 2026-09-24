@@ -1,6 +1,6 @@
 {
   "name": "polytheme",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme — light, dark, brand, and beyond.",
   "keywords": [
     "postcss",
