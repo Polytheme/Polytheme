@@ -388,17 +388,25 @@ Polytheme runs as a PostCSS plugin during your build. For each CSS custom proper
 
 If the shorthand was written under some other selector, every part moves to the configured theme selectors instead: the themes come from your config, never from the rule it happens to sit in.
 
+The expansion stays inside whatever at-rule the shorthand was written in — `@media`, `@supports`, `@layer`, `@container`, `@scope` — so a value written inside a layer stays in that layer and keeps the priority it was given. A theme may itself be an at-rule, in which case it gets a `:root` to hold the declarations.
+
 Crucially, it **only processes declarations whose property starts with `--`**. Regular properties like `background`, `color`, or `grid-template-columns` are never touched, so there's no risk of Polytheme breaking valid CSS.
 
 ---
 
 ## Roadmap
 
-Polytheme is intentionally small and focused. Things we're exploring next:
+Polytheme is intentionally small and focused.
 
-- [ ] **Mismatch warnings** — flag when a token's value count doesn't match the configured themes.
+Already shipped:
+
+- [x] **Mismatch warnings** — a token whose value count doesn't match the configured themes is left alone and reported through PostCSS.
+- [x] **Sensible defaults** — `[":root", ".dark"]` out of the box, before any config.
+- [x] **At-rule themes** — name a media query as a theme for OS dark mode with no JavaScript.
+
+Exploring next:
+
 - [ ] **Debug mode** — print what was generated during the build.
-- [ ] **Sensible defaults** — work out of the box with `[":root", ".dark"]` before any config.
 
 Have an idea? [Open an issue](https://github.com/Polytheme/Polytheme/issues) — we'd love to hear it.
 
