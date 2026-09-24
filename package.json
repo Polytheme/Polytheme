@@ -50,6 +50,9 @@
   "peerDependencies": {
     "postcss": "^8.4.0"
   },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "tsup": "^8.5.1",
