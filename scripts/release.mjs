@@ -171,6 +171,25 @@ if (resuming) {
   console.log(`  ${version}`);
 }
 
+/*
+ * Actions reads the workflow file as it exists at the pushed ref, not on the
+ * default branch. A tag on a commit from before the workflow existed therefore
+ * triggers nothing at all — no run, no failure, just silence until the wait
+ * below gives up. That is exactly how v1.0.8 was lost the first time.
+ */
+try {
+  sh("git", ["cat-file", "-e", `v${version}:.github/workflows/publish.yml`]);
+} catch {
+  die(
+    `v${version} points at a commit with no .github/workflows/publish.yml,\n` +
+      `  so pushing it would trigger no workflow and publish nothing.\n\n` +
+      `  Move the tag onto a commit that has the workflow:\n` +
+      `      git tag -f v${version} HEAD && git push --force origin v${version}\n` +
+      `  or dispatch the run by hand:\n` +
+      `      gh workflow run publish.yml -f tag=v${version}`,
+  );
+}
+
 step("pushing the plugin — this is what triggers the publish");
 /*
  * A tag already on the remote fires no push event, so the workflow would never
@@ -193,7 +212,7 @@ if (onRemote) {
  */
 step(`waiting for ${version} to be served by npm`);
 console.log(`  The workflow stages it:  https://github.com/Polytheme/Polytheme/actions`);
-console.log(`  Then release it here:    https://www.npmjs.com/package/${name}/access`);
+console.log(`  Then approve it here:    https://www.npmjs.com/package/${name}`);
 console.log(`  This will carry on by itself once npm is serving it.`);
 
 // Long, because a person has to promote the staged version in between.
@@ -217,7 +236,7 @@ if (!live) {
       `  Either the workflow has not staged it yet, or it is staged and waiting\n` +
       `  for someone to release it:\n` +
       `      https://github.com/Polytheme/Polytheme/actions\n` +
-      `      https://www.npmjs.com/package/${name}/access\n\n` +
+      `      https://www.npmjs.com/package/${name}\n\n` +
       `  Nothing was done to the website — polytheme.dev is untouched.\n` +
       `  Once it is live:  npm run sync-site`,
   );

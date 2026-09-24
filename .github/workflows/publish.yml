@@ -68,5 +68,17 @@ jobs:
 
       - run: npm test
 
-      # prepublishOnly builds; dist is gitignored, so this is what fills it.
-      - run: npm publish
+      # `stage publish`, not `publish`: the trusted publisher is registered for
+      # staged releases, so a direct publish comes back 403 "OIDC permission
+      # denied for this action". This hands npm the tarball and leaves a human
+      # to approve it — npm calls that deferring proof-of-presence.
+      #
+      # StagePublish extends Publish, so prepublishOnly still runs. That
+      # matters: dist is gitignored, and `files: ["dist"]` would otherwise
+      # match nothing and stage an empty package.
+      - run: npm stage publish
+
+      - name: Where to approve it
+        run: |
+          echo "Staged. Approve it to release:" >> "$GITHUB_STEP_SUMMARY"
+          echo "  https://www.npmjs.com/package/polytheme" >> "$GITHUB_STEP_SUMMARY"
