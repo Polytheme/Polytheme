@@ -72,6 +72,8 @@ yarn add -D polytheme
 bun add -d polytheme
 ```
 
+Polytheme is a PostCSS plugin, so it needs **PostCSS 8.4 or newer** as a peer. npm and pnpm install peers for you; on a package manager that doesn't, add `postcss` alongside it.
+
 ---
 
 ## Quick Start
@@ -142,7 +144,21 @@ Values map to your configured themes **in order** — the first value goes to th
 
 There's no second syntax and no separator to configure. One rule, applied the same way everywhere — so any Polytheme file reads the same in any project.
 
-> Because `/` inside a custom property always means "split across themes," design tokens shouldn't hold a raw slash value (like an aspect ratio). Keep those in regular properties, where Polytheme never looks.
+Slashes inside brackets are safe — `rgb(0 0 0 / 10%)` is one value, not two — so shadows, gradients and modern colour syntax all work normally.
+
+> **A bare slash is always a separator**, so a token can't hold one by accident. With two themes configured, `--ratio: 16 / 9` becomes `16` in the first and `9` in the second, and nothing warns: the counts line up, so it looks deliberate. The same goes for a `font` shorthand like `16px/1.5 Inter`.
+
+To keep a literal slash among your tokens, say so with a comment. It applies to the one declaration that follows, and doesn't survive into the output:
+
+```css
+:root {
+  /* polytheme-ignore */
+  --ratio: 16 / 9;
+  --background: var(--white) / var(--black);
+}
+```
+
+There's no automatic detection, and deliberately so: every part of `16 / 9` is a bare number, and so is every part of `--opacity: 1 / 0.5` — an ordinary themed token. Nothing can tell them apart except you.
 
 ---
 
@@ -336,7 +352,9 @@ Polytheme runs as a PostCSS plugin during your build. For each CSS custom proper
 
 1. It checks whether the value contains a `/` theme separator.
 2. It splits the value into one part per theme, respecting nested parentheses so functions like `var(...)` stay intact.
-3. It distributes each part to its matching theme selector and removes the original shorthand declaration.
+3. It writes the first theme's value back where the shorthand stood, and appends a rule for each remaining theme — so comments and plain tokens stay with the values they describe.
+
+If the shorthand was written under some other selector, every part moves to the configured theme selectors instead: the themes come from your config, never from the rule it happens to sit in.
 
 Crucially, it **only processes declarations whose property starts with `--`**. Regular properties like `background`, `color`, or `grid-template-columns` are never touched, so there's no risk of Polytheme breaking valid CSS.
 
@@ -350,7 +368,7 @@ Polytheme is intentionally small and focused. Things we're exploring next:
 - [ ] **Debug mode** — print what was generated during the build.
 - [ ] **Sensible defaults** — work out of the box with `[":root", ".dark"]` before any config.
 
-Have an idea? [Open an issue](https://github.com/polytheme/polytheme/issues) — we'd love to hear it.
+Have an idea? [Open an issue](https://github.com/Polytheme/Polytheme/issues) — we'd love to hear it.
 
 ---
 
