@@ -322,7 +322,39 @@ Toggle a theme by adding the matching class (e.g. `.dark`) to a parent element, 
 
 ## Following the system preference
 
-Polytheme generates class-based themes like `.dark`. To respect the OS setting, toggle that class with a tiny script:
+There are two ways, and which you want depends on whether the reader should be able to override the machine.
+
+### Without JavaScript
+
+Name the media query as a theme. Polytheme wraps that theme's values in a `:root` inside it, so nothing ships to the browser and there is no class to toggle:
+
+```js
+// postcss.config.mjs
+export default {
+  plugins: {
+    polytheme: { themes: [":root", "@media (prefers-color-scheme: dark)"] },
+  },
+};
+```
+
+```css
+/* Polytheme generates */
+:root {
+  --background: var(--white);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: var(--black);
+  }
+}
+```
+
+The trade-off is that the reader can't override it. A media query follows the machine and nothing else, so there is no way to offer a manual toggle on top.
+
+### With a class, if you want a manual toggle
+
+Keep `.dark` as the theme and set the class from the OS preference. Because the theme is still class-driven, a manual switch can override it later:
 
 ```js
 // follow the OS preference
