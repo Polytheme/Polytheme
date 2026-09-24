@@ -20,6 +20,10 @@ on:
       tag:
         description: "Version tag to publish, e.g. v1.0.8"
         required: true
+      dry_run:
+        description: "Run every check but do not stage anything"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -32,13 +36,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # On a manual run the default ref is the branch, which may have moved
           # past the tag being published.
           ref: ${{ inputs.tag || github.ref }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
@@ -90,9 +94,14 @@ jobs:
       # StagePublish extends Publish, so prepublishOnly still runs. That
       # matters: dist is gitignored, and `files: ["dist"]` would otherwise
       # match nothing and stage an empty package.
-      - run: npm stage publish
+      - if: ${{ !inputs.dry_run }}
+        run: npm stage publish
+
+      - if: ${{ inputs.dry_run }}
+        run: echo "Dry run — everything above passed, nothing was staged."
 
       - name: Where to approve it
+        if: ${{ !inputs.dry_run }}
         run: |
           echo "Staged. Approve it to release:" >> "$GITHUB_STEP_SUMMARY"
           echo "  https://www.npmjs.com/package/polytheme" >> "$GITHUB_STEP_SUMMARY"
