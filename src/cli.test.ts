@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execPath } from "node:process";
@@ -27,13 +27,50 @@ const run = (args: string[]) =>
 const read = (path: string) => readFileSync(join(scratch, path), "utf8");
 
 describe("npx polytheme skill", () => {
-  it("writes the Agent Skills format for Claude Code by default", () => {
+  /*
+   * AGENTS.md is the default because most agents already read it — it is plain
+   * Markdown at the repository root, stewarded by the Agentic AI Foundation.
+   * It is also shared with the rest of the project, which is what makes the
+   * next three tests the important ones: a package must not eat instructions it
+   * did not write.
+   */
+  it("adds a fenced block to AGENTS.md by default", () => {
     const out = run(["skill"]);
+    const file = read("AGENTS.md");
+
+    expect(file).toContain("<!-- polytheme:start -->");
+    expect(file).toContain("<!-- polytheme:end -->");
+    expect(out).toContain("AGENTS.md");
+  });
+
+  it("keeps whatever was already in AGENTS.md", () => {
+    writeFileSync(join(scratch, "AGENTS.md"), "# Mine\n\nNever touch vendor/.\n");
+    run(["skill"]);
+
+    expect(read("AGENTS.md")).toContain("Never touch vendor/.");
+    expect(read("AGENTS.md")).toContain("<!-- polytheme:start -->");
+  });
+
+  it("replaces its own block rather than stacking copies", () => {
+    run(["skill"]);
+    run(["skill"]);
+    const file = read("AGENTS.md");
+
+    expect(file.match(/polytheme:start/g)).toHaveLength(1);
+    expect(file).toContain("Never touch vendor/.");
+  });
+
+  it("writes the Agent Skills format for Claude Code", () => {
+    const out = run(["skill", "--for", "claude"]);
     const file = read(".claude/skills/polytheme/SKILL.md");
 
     expect(file).toMatch(/^---\nname: polytheme\n/);
     expect(file).toMatch(/^description: \S/m);
     expect(out).toContain(".claude/skills/polytheme/SKILL.md");
+  });
+
+  it("points Codex at the same AGENTS.md", () => {
+    expect(run(["skill", "--for", "codex"])).toContain("AGENTS.md");
   });
 
   it("writes .mdc with Cursor's activation fields, since a .md there is ignored", () => {
@@ -64,7 +101,9 @@ describe("npx polytheme skill", () => {
   });
 
   it("carries the same guidance into every format", () => {
+    run(["skill", "--for", "claude"]);
     for (const path of [
+      "AGENTS.md",
       ".claude/skills/polytheme/SKILL.md",
       ".cursor/rules/polytheme.mdc",
       ".windsurf/rules/polytheme.md",
@@ -81,7 +120,7 @@ describe("npx polytheme skill", () => {
   });
 
   it("honours an explicit directory", () => {
-    run(["skill", "--dir", "custom/place"]);
+    run(["skill", "--for", "claude", "--dir", "custom/place"]);
     expect(existsSync(join(scratch, "custom/place/SKILL.md"))).toBe(true);
   });
 
@@ -97,7 +136,7 @@ describe("npx polytheme skill", () => {
 
   it("lists every agent it supports when given nothing", () => {
     const out = run([]);
-    for (const agent of ["claude", "cursor", "windsurf", "copilot"]) {
+    for (const agent of ["agents", "codex", "claude", "cursor", "windsurf", "copilot"]) {
       expect(out).toContain(agent);
     }
   });

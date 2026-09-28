@@ -149,7 +149,16 @@ polytheme({ themes: [":root", ".dark", ".eclipse", ".eclipse-dark"] })
 Left alone, a coding assistant writes the very thing Polytheme deletes: a `:root` block and a matching `.dark` block, kept in sync by hand. The package ships a skill that corrects that:
 
 ```bash
-npx polytheme skill                   # .claude/skills/polytheme/SKILL.md
+npx polytheme skill
+```
+
+That adds a fenced block to `AGENTS.md` at the root of your repository — plain Markdown, read by more than twenty agents including Codex and Gemini CLI. Whatever else is in the file stays put, and running it again after an upgrade replaces only Polytheme's block.
+
+Some tools have a native format that does more than a shared Markdown file can, such as scoping the rule to stylesheets so it is not pulled into unrelated edits:
+
+```bash
+npx polytheme skill --for codex       # AGENTS.md, the same block as the default
+npx polytheme skill --for claude      # .claude/skills/polytheme/SKILL.md
 npx polytheme skill --for cursor      # .cursor/rules/polytheme.mdc
 npx polytheme skill --for windsurf    # .windsurf/rules/polytheme.md
 npx polytheme skill --for copilot     # .github/instructions/polytheme.instructions.md

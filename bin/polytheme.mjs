@@ -32,7 +32,48 @@ const SKILL = resolve(HERE, "..", "skill", "SKILL.md");
  */
 const WINDSURF_LIMIT = 6000;
 
+/*
+ * AGENTS.md is shared with the rest of the project, so the block is fenced and
+ * replaced in place. Appending blindly would stack a copy per run; writing the
+ * file would destroy instructions this command did not put there.
+ */
+const START = "<!-- polytheme:start -->";
+const END = "<!-- polytheme:end -->";
+
+function mergeIntoShared(existing, block) {
+  const fenced = `${START}\n${block}\n${END}`;
+  if (!existing) return `${fenced}\n`;
+
+  const from = existing.indexOf(START);
+  const to = existing.indexOf(END);
+
+  if (from !== -1 && to > from) {
+    return existing.slice(0, from) + fenced + existing.slice(to + END.length);
+  }
+
+  return `${existing.trimEnd()}\n\n${fenced}\n`;
+}
+
 const TARGETS = {
+  /*
+   * The default, because it is the one file most agents already read: plain
+   * Markdown at the repository root, stewarded by the Agentic AI Foundation and
+   * supported by Codex, Cursor, Copilot, Windsurf, Gemini CLI, Aider, Zed and
+   * others. One command covers most of the field; the entries below exist only
+   * where a tool has a richer native format worth using instead.
+   */
+  agents: {
+    label: "AGENTS.md",
+    path: "AGENTS.md",
+    shared: true,
+    render: (front, body) => `## Polytheme\n\n${front.description}\n\n${body}`,
+  },
+  codex: {
+    label: "Codex",
+    path: "AGENTS.md",
+    shared: true,
+    render: (front, body) => `## Polytheme\n\n${front.description}\n\n${body}`,
+  },
   claude: {
     label: "Claude Code",
     path: ".claude/skills/polytheme/SKILL.md",
@@ -94,7 +135,8 @@ function usage() {
 
 ${agents}
 
-      --for defaults to claude. --dir overrides the path for anything not listed.
+      --for defaults to the AGENTS.md block, which most agents read.
+      --dir overrides the path for anything not listed.
 
 Nothing else is installed and nothing outside the written file is touched.`);
 }
@@ -105,7 +147,7 @@ function valueOf(argv, flag) {
 }
 
 async function installSkill(argv) {
-  const agent = valueOf(argv, "--for") ?? "claude";
+  const agent = valueOf(argv, "--for") ?? "agents";
   const target = TARGETS[agent];
 
   if (!target) {
@@ -127,18 +169,28 @@ async function installSkill(argv) {
   }
 
   const { front, body } = parse(source);
-  const contents = target.render(front, body);
+  const rendered = target.render(front, body);
 
   const explicit = valueOf(argv, "--dir");
   const destination = explicit
     ? resolve(process.cwd(), explicit, target.path.split("/").pop())
     : resolve(process.cwd(), target.path);
 
+  let contents = rendered;
+  let merged = false;
+
+  if (target.shared) {
+    const existing = await readFile(destination, "utf8").catch(() => "");
+    merged = existing.includes(START);
+    contents = mergeIntoShared(existing, rendered);
+  }
+
   await mkdir(dirname(destination), { recursive: true });
   await writeFile(destination, contents.endsWith("\n") ? contents : `${contents}\n`);
 
   const shown = destination.replace(`${process.cwd()}/`, "");
-  console.log(`Wrote the Polytheme skill (v${await version()}) for ${target.label} to ${shown}`);
+  const verb = merged ? "Updated" : target.shared ? "Added" : "Wrote";
+  console.log(`${verb} the Polytheme skill (v${await version()}) for ${target.label} in ${shown}`);
 
   if (agent === "windsurf" && contents.length > WINDSURF_LIMIT) {
     console.warn(
