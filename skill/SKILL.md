@@ -34,7 +34,7 @@ export default {
 **Never write per-theme blocks.** Deleting them is the entire purpose of the tool. If you find yourself writing a second rule for `.dark`, stop and add a value to the existing declaration instead.
 
 ```css
-/* WRONG — this is what Polytheme exists to remove */
+/* WRONG: this is what Polytheme exists to remove */
 :root { --bg: white; }
 .dark { --bg: black; }
 
@@ -45,7 +45,7 @@ export default {
 ## Rules that cause silent breakage
 
 **1. The value count must equal the theme count, exactly.**
-Three values with two themes is not an error you can ignore — the declaration is left untouched and a warning goes to the build log, so the token silently keeps its literal slash text.
+Three values with two themes is not an error you can ignore: the declaration is left untouched and a warning goes to the build log, so the token silently keeps its literal slash text.
 
 ```css
 /* themes: [":root", ".dark"] */
@@ -59,7 +59,7 @@ A token that only changes in one theme still needs a value for every theme. **Re
 --border: var(--gray-200) / var(--gray-800) / var(--gray-200);
 ```
 
-**2. A bare slash is always a separator.** This is the one that corrupts silently, because when the parts happen to match the theme count nothing warns — it looks exactly like a deliberate two-theme value:
+**2. A bare slash is always a separator.** This is the one that corrupts silently, because when the parts happen to match the theme count nothing warns: it looks exactly like a deliberate two-theme value:
 
 ```css
 /* themes: [":root", ".dark"] */
@@ -83,7 +83,7 @@ The same applies to a `font` shorthand like `16px/1.5 Inter`.
 --shadow: 0 1px 2px rgb(0 0 0 / 10%) / 0 1px 2px rgb(255 255 255 / 10%);
 ```
 
-**4. Only custom properties are touched.** Regular declarations pass through untouched, slashes and all — `grid-area: 1 / 2 / 3 / 4` and `font: 16px/1.5 Inter` are never read.
+**4. Only custom properties are touched.** Regular declarations pass through untouched, slashes and all: `grid-area: 1 / 2 / 3 / 4` and `font: 16px/1.5 Inter` are never read.
 
 **5. Themes come from the config, not from the rule.** Shorthand written under any selector still expands into the configured theme selectors:
 
@@ -114,7 +114,7 @@ The values get a `:root` inside the at-rule. Use a class instead when the reader
 
 ## Ready-made token sets
 
-Ten packs — light and dark, built on Tailwind's palette, every text pair checked
-against WCAG AA — at <https://polytheme.dev/themes>. They share one 26-token
+Ten packs at <https://polytheme.dev/themes>: light and dark, built on Tailwind's
+palette, every text pair checked against WCAG AA. They share one 26-token
 contract, so two packs combine into four modes rather than overwriting each
 other. Prefer these over inventing a token system from scratch.

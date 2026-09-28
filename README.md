@@ -4,7 +4,7 @@
 
 ### Write your theme variables once, not once per theme.
 
-A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme — light, dark, brand, and beyond.
+A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme: light, dark, brand, and beyond.
 
 [![npm version](https://img.shields.io/npm/v/polytheme.svg)](https://www.npmjs.com/package/polytheme)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
@@ -18,7 +18,7 @@ A Tailwind-first PostCSS plugin that turns a single line of CSS into every theme
 
 ## Why Polytheme?
 
-Theming the usual way means writing the same variables over and over — one block for light, another for dark, another for every brand or mode — then keeping them all in sync by hand. It's slow, repetitive, and easy to break.
+Theming the usual way means writing the same variables over and over, one block for light, another for dark, another for every brand or mode, then keeping them all in sync by hand. It's slow, repetitive, and easy to break.
 
 **Polytheme flips that.** You write each variable *once*, on a single line, with a value for each theme. Polytheme generates every theme for you at build time.
 
@@ -45,20 +45,20 @@ Theming the usual way means writing the same variables over and over — one blo
 }
 ```
 
-It only ever touches CSS variables (`--*`), so your regular CSS is never altered — and the output drops straight into a Tailwind v4 `@theme` setup.
+It only ever touches CSS variables (`--*`), so your regular CSS is never altered, and the output drops straight into a Tailwind v4 `@theme` setup.
 
 ---
 
 ## Features
 
-- **One line, every theme** — define a token once with a value per theme.
-- **One simple rule** — inside a CSS variable, `/` separates your themes. No syntax to learn, no options to weigh.
-- **Tailwind-first** — output is plain CSS custom properties, made to plug into Tailwind v4's `@theme`.
-- **Safe by design** — only transforms declarations starting with `--`. Your normal CSS is left exactly as written.
-- **Any number of themes** — light and dark out of the box, plus brand modes, high-contrast, or whatever you define.
-- **Zero runtime** — everything happens at build time. No JavaScript ships to the browser.
-- **Ten ready-made themes** — light and dark, WCAG AA checked, and they combine into more.
-- **Agent-ready** — `npx polytheme skill` teaches your coding assistant the syntax and its traps.
+- **One line, every theme**: define a token once with a value per theme.
+- **One simple rule**: inside a CSS variable, `/` separates your themes. No syntax to learn, no options to weigh.
+- **Tailwind-first**: output is plain CSS custom properties, made to plug into Tailwind v4's `@theme`.
+- **Safe by design**: only transforms declarations starting with `--`. Your normal CSS is left exactly as written.
+- **Any number of themes**: light and dark out of the box, plus brand modes, high-contrast, or whatever you define.
+- **Zero runtime**: everything happens at build time. No JavaScript ships to the browser.
+- **Ten ready-made themes**: light and dark, WCAG AA checked, and they combine into more.
+- **Agent-ready**: `npx polytheme skill` teaches your coding assistant the syntax and its traps.
 
 ---
 
@@ -127,12 +127,12 @@ That's it. Add a token once, and every theme stays in sync automatically.
 
 Ten ready-made token sets, so you don't start from a blank file. Each is light and dark across the same 26 tokens, built from Tailwind's palette, with every text pair checked against WCAG AA.
 
-Browse them at **[polytheme.dev/themes](https://polytheme.dev/themes)**, copy the block, paste it into your CSS. The first pack takes `:root` and `.dark` — the names most dark-mode setups already toggle — so it drops in with nothing to rewire.
+Browse them at **[polytheme.dev/themes](https://polytheme.dev/themes)**, copy the block, paste it into your CSS. The first pack takes `:root` and `.dark`, the names most dark-mode setups already toggle, so it drops in with nothing to rewire.
 
 They share one token contract, which is what makes them combine. Pasting a second pack underneath the first does **not** add themes: it redeclares the same tokens and the later block wins. Themes only multiply when every token carries one value per theme in a single declaration, so tick the extra packs on a pack's page and you get the merged block and the matching config line.
 
 ```css
-/* Dawn + Eclipse — four themes, one declaration each */
+/* Dawn + Eclipse: four themes, one declaration each */
 :root {
   --background: var(--color-stone-50) / var(--color-stone-950) / var(--color-white) / var(--color-black);
 }
@@ -146,7 +146,7 @@ polytheme({ themes: [":root", ".dark", ".eclipse", ".eclipse-dark"] })
 
 ## AI agents
 
-Left alone, a coding assistant writes the very thing Polytheme deletes — a `:root` block and a matching `.dark` block, kept in sync by hand. The package ships a skill that corrects that:
+Left alone, a coding assistant writes the very thing Polytheme deletes: a `:root` block and a matching `.dark` block, kept in sync by hand. The package ships a skill that corrects that:
 
 ```bash
 npx polytheme skill              # into .claude/skills/polytheme
@@ -155,7 +155,7 @@ npx polytheme skill --for cursor # into .cursor/rules/polytheme
 
 It lives inside the package rather than on the website, so it always describes the version you have installed and can never claim a feature that is missing. Upgrade Polytheme and run it again to refresh the copy.
 
-The syntax is one line, so the skill spends its length on what actually goes wrong: value counts that must match the theme count exactly, a bare slash always being a separator — so `--ratio: 16 / 9` silently becomes two themes — slashes inside brackets being safe, and never writing per-theme blocks.
+The syntax is one line, so the skill spends its length on what actually goes wrong: value counts that must match the theme count exactly, a bare slash always being a separator, so `--ratio: 16 / 9` silently becomes two themes, slashes inside brackets being safe, and never writing per-theme blocks.
 
 ---
 
@@ -165,7 +165,7 @@ Polytheme has exactly one rule, and it's the whole tool:
 
 > **Inside a CSS variable, `/` separates your themes.**
 
-Values map to your configured themes **in order** — the first value goes to the first theme, the second to the second, and so on.
+Values map to your configured themes **in order**: the first value goes to the first theme, the second to the second, and so on.
 
 ```css
 :root {
@@ -180,9 +180,9 @@ Values map to your configured themes **in order** — the first value goes to th
 .brand { --primary: var(--brand-accent); }
 ```
 
-There's no second syntax and no separator to configure. One rule, applied the same way everywhere — so any Polytheme file reads the same in any project.
+There's no second syntax and no separator to configure. One rule, applied the same way everywhere, so any Polytheme file reads the same in any project.
 
-Slashes inside brackets are safe — `rgb(0 0 0 / 10%)` is one value, not two — so shadows, gradients and modern colour syntax all work normally.
+Slashes inside brackets are safe, `rgb(0 0 0 / 10%)` is one value, not two, so shadows, gradients and modern colour syntax all work normally.
 
 > **A bare slash is always a separator**, so a token can't hold one by accident. With two themes configured, `--ratio: 16 / 9` becomes `16` in the first and `9` in the second, and nothing warns: the counts line up, so it looks deliberate. The same goes for a `font` shorthand like `16px/1.5 Inter`.
 
@@ -196,15 +196,15 @@ To keep a literal slash among your tokens, say so with a comment. It applies to 
 }
 ```
 
-There's no automatic detection, and deliberately so: every part of `16 / 9` is a bare number, and so is every part of `--opacity: 1 / 0.5` — an ordinary themed token. Nothing can tell them apart except you.
+There's no automatic detection, and deliberately so: every part of `16 / 9` is a bare number, and so is every part of `--opacity: 1 / 0.5`: an ordinary themed token. Nothing can tell them apart except you.
 
 ---
 
 ## Activating themes
 
-Your first theme is the default and needs nothing. Every other theme activates when its class is present on a parent element — usually `<html>`.
+Your first theme is the default and needs nothing. Every other theme activates when its class is present on a parent element: usually `<html>`.
 
-The first selector in your `themes` array — normally `:root` — applies globally, so your **default theme works with no class at all**. The remaining themes (`.dark`, `.brand`, …) are class-based: they only take effect when that class is on an ancestor.
+The first selector in your `themes` array, normally `:root`, applies globally, so your **default theme works with no class at all**. The remaining themes (`.dark`, `.brand`, …) are class-based: they only take effect when that class is on an ancestor.
 
 ```html
 <!-- Switch on dark mode -->
@@ -213,7 +213,7 @@ The first selector in your `themes` array — normally `:root` — applies globa
 </html>
 ```
 
-You **don't need a `.light` class**. Because `:root` is the default, light *is* the no-class state — only the themes layered on top need a class.
+You **don't need a `.light` class**. Because `:root` is the default, light *is* the no-class state: only the themes layered on top need a class.
 
 > Your theme selectors are just CSS selectors. To drive themes with a data attribute instead, use `themes: [":root", "[data-theme=dark]"]` and toggle the attribute.
 
@@ -221,7 +221,7 @@ You **don't need a `.light` class**. Because `:root` is the default, light *is* 
 
 ## Best Practice: Label your theme order
 
-Because values map by position, leave a one-line comment at the top of each block noting the order. It costs nothing and makes the file effortless to read and edit later — especially with three or more themes.
+Because values map by position, leave a one-line comment at the top of each block noting the order. It costs nothing and makes the file effortless to read and edit later: especially with three or more themes.
 
 ```css
 :root {
@@ -231,7 +231,7 @@ Because values map by position, leave a one-line comment at the top of each bloc
 }
 ```
 
-The order always matches the `themes` array in your config — keep the two aligned and your tokens stay self-documenting.
+The order always matches the `themes` array in your config: keep the two aligned and your tokens stay self-documenting.
 
 ---
 
@@ -267,7 +267,7 @@ export default {
 .high-contrast { --background: var(--pure-black); }
 ```
 
-> If a token has fewer values than you have themes, the extra themes are simply skipped for that token — so you only override what actually changes.
+> If a token has fewer values than you have themes, the extra themes are simply skipped for that token, so you only override what actually changes.
 
 ---
 
@@ -332,7 +332,7 @@ Polytheme pairs naturally with Tailwind v4's CSS-variable-based theming. Define 
   --color-black: #0a0a0a;
 }
 
-/* 2. Semantic tokens — Polytheme expands these per theme */
+/* 2. Semantic tokens: Polytheme expands these per theme */
 :root {
   /* order: light / dark */
   --background: var(--color-white) / var(--color-black);
@@ -350,7 +350,7 @@ Now use them anywhere as ordinary Tailwind classes:
 
 ```html
 <div class="bg-background text-foreground">
-  Themed automatically — light and dark.
+  Themed automatically: light and dark.
 </div>
 ```
 
@@ -402,7 +402,7 @@ apply();
 mq.addEventListener("change", apply);
 ```
 
-Put the script in the `<head>` of your app's root HTML, **before any content renders** — so the right theme class is on `<html>` before the first paint and users never see a flash of the wrong theme.
+Put the script in the `<head>` of your app's root HTML, **before any content renders**, so the right theme class is on `<html>` before the first paint and users never see a flash of the wrong theme.
 
 > See the [System preference guide](https://polytheme.dev/docs/system-preference/) for where exactly to place it in HTML, Next.js, Vite, and Astro.
 
@@ -412,7 +412,7 @@ Put the script in the `<head>` of your app's root HTML, **before any content ren
 
 Already have hand-written `:root` / `.dark` / `.brand` blocks? You don't need to rewrite them.
 
-The [Polytheme playground](https://polytheme.dev/playground/) runs the transform **both ways**. Switch it to **CSS → Polytheme**, paste your existing theme blocks, and it returns the equivalent shorthand — ready to drop back into your stylesheet. Values that just inherit `:root` get trimmed automatically, so you get the minimal correct output, not bloat.
+The [Polytheme playground](https://polytheme.dev/playground/) runs the transform **both ways**. Switch it to **CSS → Polytheme**, paste your existing theme blocks, and it returns the equivalent shorthand: ready to drop back into your stylesheet. Values that just inherit `:root` get trimmed automatically, so you get the minimal correct output, not bloat.
 
 ---
 
@@ -422,11 +422,11 @@ Polytheme runs as a PostCSS plugin during your build. For each CSS custom proper
 
 1. It checks whether the value contains a `/` theme separator.
 2. It splits the value into one part per theme, respecting nested parentheses so functions like `var(...)` stay intact.
-3. It writes the first theme's value back where the shorthand stood, and appends a rule for each remaining theme — so comments and plain tokens stay with the values they describe.
+3. It writes the first theme's value back where the shorthand stood, and appends a rule for each remaining theme, so comments and plain tokens stay with the values they describe.
 
 If the shorthand was written under some other selector, every part moves to the configured theme selectors instead: the themes come from your config, never from the rule it happens to sit in.
 
-The expansion stays inside whatever at-rule the shorthand was written in — `@media`, `@supports`, `@layer`, `@container`, `@scope` — so a value written inside a layer stays in that layer and keeps the priority it was given. A theme may itself be an at-rule, in which case it gets a `:root` to hold the declarations.
+The expansion stays inside whatever at-rule the shorthand was written in, `@media`, `@supports`, `@layer`, `@container`, `@scope`, so a value written inside a layer stays in that layer and keeps the priority it was given. A theme may itself be an at-rule, in which case it gets a `:root` to hold the declarations.
 
 Crucially, it **only processes declarations whose property starts with `--`**. Regular properties like `background`, `color`, or `grid-template-columns` are never touched, so there's no risk of Polytheme breaking valid CSS.
 
@@ -438,23 +438,23 @@ Polytheme is intentionally small and focused.
 
 Already shipped:
 
-- [x] **Mismatch warnings** — a token whose value count doesn't match the configured themes is left alone and reported through PostCSS.
-- [x] **Sensible defaults** — `[":root", ".dark"]` out of the box, before any config.
-- [x] **At-rule themes** — name a media query as a theme for OS dark mode with no JavaScript.
-- [x] **Theme packs** — ten ready-made token sets that combine rather than overwrite.
-- [x] **An agent skill** — shipped in the package, installed with `npx polytheme skill`.
+- [x] **Mismatch warnings**: a token whose value count doesn't match the configured themes is left alone and reported through PostCSS.
+- [x] **Sensible defaults**: `[":root", ".dark"]` out of the box, before any config.
+- [x] **At-rule themes**: name a media query as a theme for OS dark mode with no JavaScript.
+- [x] **Theme packs**: ten ready-made token sets that combine rather than overwrite.
+- [x] **An agent skill**: shipped in the package, installed with `npx polytheme skill`.
 
 Exploring next:
 
-- [ ] **Debug mode** — print what was generated during the build.
+- [ ] **Debug mode**: print what was generated during the build.
 
-Have an idea? [Open an issue](https://github.com/Polytheme/Polytheme/issues) — we'd love to hear it.
+Have an idea? [Open an issue](https://github.com/Polytheme/Polytheme/issues): we'd love to hear it.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) first — it covers setup, the design principles that guide what gets merged (Polytheme is intentionally opinionated), and PR guidelines.
+Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) first: it covers setup, the design principles that guide what gets merged (Polytheme is intentionally opinionated), and PR guidelines.
 
 ---
 
@@ -464,17 +464,17 @@ Polytheme is built by:
 
 **Akorede J. Ayanbisi**
 
-- X — [x.com/aj_ayanbisi](https://x.com/aj_ayanbisi)
-- LinkedIn — [linkedin.com/in/ajayanbisi](https://www.linkedin.com/in/ajayanbisi/)
-- GitHub — [github.com/ajayanbisi](https://github.com/ajayanbisi)
-- Portfolio — [ayanbisi.com](https://ayanbisi.com/)
+- X: [x.com/aj_ayanbisi](https://x.com/aj_ayanbisi)
+- LinkedIn: [linkedin.com/in/ajayanbisi](https://www.linkedin.com/in/ajayanbisi/)
+- GitHub: [github.com/ajayanbisi](https://github.com/ajayanbisi)
+- Portfolio: [ayanbisi.com](https://ayanbisi.com/)
 
 **Taiwo Hammed**
 
-- X — [x.com/hammedt20_](https://x.com/hammedt20_)
-- LinkedIn — [linkedin.com/in/taiwo-hammed](https://www.linkedin.com/in/taiwo-hammed)
-- GitHub — [github.com/hammedt20](https://github.com/hammedt20)
-- Portfolio — [taiwo-hammed.netlify.app](https://taiwo-hammed.netlify.app/)
+- X: [x.com/hammedt20_](https://x.com/hammedt20_)
+- LinkedIn: [linkedin.com/in/taiwo-hammed](https://www.linkedin.com/in/taiwo-hammed)
+- GitHub: [github.com/hammedt20](https://github.com/hammedt20)
+- Portfolio: [taiwo-hammed.netlify.app](https://taiwo-hammed.netlify.app/)
 
 ---
 
