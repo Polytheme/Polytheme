@@ -66,13 +66,13 @@ const TARGETS = {
     label: "AGENTS.md",
     path: "AGENTS.md",
     shared: true,
-    render: (front, body) => `## Polytheme\n\n${front.description}\n\n${body}`,
+    render: (front, body) => `## Polytheme\n\n${front.description}\n\n${nest(body, 2)}`,
   },
   codex: {
     label: "Codex",
     path: "AGENTS.md",
     shared: true,
-    render: (front, body) => `## Polytheme\n\n${front.description}\n\n${body}`,
+    render: (front, body) => `## Polytheme\n\n${front.description}\n\n${nest(body, 2)}`,
   },
   claude: {
     label: "Claude Code",
@@ -93,7 +93,7 @@ const TARGETS = {
     path: ".windsurf/rules/polytheme.md",
     // Plain markdown: Windsurf's own activation metadata is set in its UI, and
     // inventing frontmatter here would show up as body text.
-    render: (front, body) => `# Polytheme\n\n${front.description}\n\n${body}`,
+    render: (front, body) => `# Polytheme\n\n${front.description}\n\n${nest(body, 1)}`,
   },
   copilot: {
     label: "GitHub Copilot",
@@ -104,6 +104,24 @@ const TARGETS = {
     render: (front, body) => `---\napplyTo: "**/*.css"\n---\n\n${body}`,
   },
 };
+
+/*
+ * The body, re-levelled for a format that supplies its own heading.
+ *
+ * SKILL.md opens with `# Polytheme` and sets its sections at `##`, which is
+ * right when the file is the whole document. Wrapped under a heading it is not:
+ * AGENTS.md ended up with an H1 inside an H2, and every `##` section of the
+ * skill sitting at the same level as the project's own — so "Rules that cause
+ * silent breakage" read as a rule of the project, not of Polytheme. `depth` is
+ * the level of the heading the caller has already written.
+ */
+function nest(body, depth) {
+  const withoutTitle = body.replace(/^#\s+\S[^\n]*\n+/, "");
+  if (depth < 2) return withoutTitle;
+
+  // Only at the start of a line, so a `#` inside a fenced block is left alone.
+  return withoutTitle.replace(/^(#{1,5})\s/gm, (_, hashes) => `${"#".repeat(hashes.length + depth - 1)} `);
+}
 
 /** Split `---` frontmatter from the body without pulling in a YAML parser. */
 function parse(source) {

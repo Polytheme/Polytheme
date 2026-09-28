@@ -141,3 +141,36 @@ describe("npx polytheme skill", () => {
     }
   });
 });
+
+/*
+ * The shared formats wrap the skill under a heading of their own. The body
+ * carries its own `# Polytheme` and sets its sections at `##`, which is right
+ * for a standalone file and wrong inside a wrapper: AGENTS.md ended up with an
+ * H1 nested in an H2, and every section of the skill sat at the same level as
+ * the project's own headings rather than under Polytheme's.
+ */
+describe("heading levels in a wrapped format", () => {
+  it("keeps every AGENTS.md heading under the Polytheme section", () => {
+    run(["skill"]);
+    const block = read("AGENTS.md");
+    const fenced = block.slice(block.indexOf("<!-- polytheme:start -->"));
+    const levels = [...fenced.matchAll(/^(#+)\s+(.+)$/gm)].map(([, h, text]) => [h.length, text]);
+
+    expect(levels[0]).toEqual([2, "Polytheme"]);
+    expect(levels.slice(1).every(([level]) => (level as number) > 2)).toBe(true);
+  });
+
+  it("leaves Windsurf one title rather than two", () => {
+    run(["skill", "--for", "windsurf"]);
+
+    expect([...read(".windsurf/rules/polytheme.md").matchAll(/^#\s+\S/gm)]).toHaveLength(1);
+  });
+
+  it("leaves a frontmatter format alone, where the body is the whole document", () => {
+    run(["skill", "--for", "claude"]);
+    const file = read(".claude/skills/polytheme/SKILL.md");
+
+    expect(file).toMatch(/^# Polytheme$/m);
+    expect(file).toMatch(/^## The one thing to get right$/m);
+  });
+});
