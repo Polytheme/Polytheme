@@ -57,6 +57,8 @@ It only ever touches CSS variables (`--*`), so your regular CSS is never altered
 - **Safe by design** — only transforms declarations starting with `--`. Your normal CSS is left exactly as written.
 - **Any number of themes** — light and dark out of the box, plus brand modes, high-contrast, or whatever you define.
 - **Zero runtime** — everything happens at build time. No JavaScript ships to the browser.
+- **Ten ready-made themes** — light and dark, WCAG AA checked, and they combine into more.
+- **Agent-ready** — `npx polytheme skill` teaches your coding assistant the syntax and its traps.
 
 ---
 
@@ -118,6 +120,42 @@ export default {
 ```
 
 That's it. Add a token once, and every theme stays in sync automatically.
+
+---
+
+## Theme packs
+
+Ten ready-made token sets, so you don't start from a blank file. Each is light and dark across the same 26 tokens, built from Tailwind's palette, with every text pair checked against WCAG AA.
+
+Browse them at **[polytheme.dev/themes](https://polytheme.dev/themes)**, copy the block, paste it into your CSS. The first pack takes `:root` and `.dark` — the names most dark-mode setups already toggle — so it drops in with nothing to rewire.
+
+They share one token contract, which is what makes them combine. Pasting a second pack underneath the first does **not** add themes: it redeclares the same tokens and the later block wins. Themes only multiply when every token carries one value per theme in a single declaration, so tick the extra packs on a pack's page and you get the merged block and the matching config line.
+
+```css
+/* Dawn + Eclipse — four themes, one declaration each */
+:root {
+  --background: var(--color-stone-50) / var(--color-stone-950) / var(--color-white) / var(--color-black);
+}
+```
+
+```js
+polytheme({ themes: [":root", ".dark", ".eclipse", ".eclipse-dark"] })
+```
+
+---
+
+## AI agents
+
+Left alone, a coding assistant writes the very thing Polytheme deletes — a `:root` block and a matching `.dark` block, kept in sync by hand. The package ships a skill that corrects that:
+
+```bash
+npx polytheme skill              # into .claude/skills/polytheme
+npx polytheme skill --for cursor # into .cursor/rules/polytheme
+```
+
+It lives inside the package rather than on the website, so it always describes the version you have installed and can never claim a feature that is missing. Upgrade Polytheme and run it again to refresh the copy.
+
+The syntax is one line, so the skill spends its length on what actually goes wrong: value counts that must match the theme count exactly, a bare slash always being a separator — so `--ratio: 16 / 9` silently becomes two themes — slashes inside brackets being safe, and never writing per-theme blocks.
 
 ---
 
@@ -403,6 +441,8 @@ Already shipped:
 - [x] **Mismatch warnings** — a token whose value count doesn't match the configured themes is left alone and reported through PostCSS.
 - [x] **Sensible defaults** — `[":root", ".dark"]` out of the box, before any config.
 - [x] **At-rule themes** — name a media query as a theme for OS dark mode with no JavaScript.
+- [x] **Theme packs** — ten ready-made token sets that combine rather than overwrite.
+- [x] **An agent skill** — shipped in the package, installed with `npx polytheme skill`.
 
 Exploring next:
 
