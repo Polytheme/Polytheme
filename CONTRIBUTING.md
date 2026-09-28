@@ -1,6 +1,16 @@
 # Contributing to Polytheme
 
-Thanks for your interest in improving Polytheme. This guide covers how the project is organized, how to get set up locally, and — most importantly — the design principles that decide what does and doesn't get merged.
+> **Not open to outside contributions at the moment.**
+>
+> Polytheme is maintained by Akorede J. Ayanbisi and Taiwo Hammed, who are the
+> only people making changes to it for now. Issues are closed and pull requests
+> from outside the project aren't being reviewed or merged.
+>
+> This is a pause, not a policy. Opening it up again is a matter of turning
+> issues back on and deleting this block, which is why the rest of this guide is
+> still here and still accurate.
+
+This guide covers how the project is organized, how to get set up locally, and — most importantly — the design principles that decide what does and doesn't get merged.
 
 ---
 
@@ -105,14 +115,11 @@ Structure may evolve; the principle is to keep the plugin small and the docs clo
 
 ## Reporting bugs
 
-Open an issue with:
-
-- The **input CSS** you wrote.
-- The **output** you got.
-- The **output you expected**.
-- Your Polytheme version, package manager, and build setup (PostCSS / Tailwind / framework).
-
-A minimal reproduction is worth a thousand words. If you can paste your input into the [playground](https://polytheme.dev/#playground) and it reproduces, link to a screenshot — that's often enough.
+Issues are closed while the project is maintained privately. When they reopen, a
+good report carries the **input CSS**, the **output you got**, the **output you
+expected**, and your Polytheme version, package manager and build setup. If the
+[playground](https://polytheme.dev/#playground) reproduces it, that is usually
+enough on its own.
 
 ---
 

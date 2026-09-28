@@ -463,13 +463,15 @@ Exploring next:
 
 - [ ] **Debug mode**: print what was generated during the build.
 
-Have an idea? [Open an issue](https://github.com/Polytheme/Polytheme/issues): we'd love to hear it.
+That list is set by the two people who maintain Polytheme, and it isn't taking requests at the moment.
 
 ---
 
 ## Contributing
 
-Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) first: it covers setup, the design principles that guide what gets merged (Polytheme is intentionally opinionated), and PR guidelines.
+Polytheme is maintained by Akorede J. Ayanbisi and Taiwo Hammed, and isn't open to outside contributions at the moment: issues are closed, and pull requests from outside the project aren't being reviewed.
+
+That may change. [`CONTRIBUTING.md`](./CONTRIBUTING.md) is still there and still accurate — it covers setup, the project structure, and the design principles that decide what belongs in the tool, which is worth reading whether or not you can send a patch.
 
 ---
 
