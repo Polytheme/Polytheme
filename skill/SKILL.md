@@ -114,7 +114,7 @@ The values get a `:root` inside the at-rule. Use a class instead when the reader
 
 ## Ready-made token sets
 
-Ten packs at <https://polytheme.dev/themes>: light and dark, built on Tailwind's
+Ready-made packs at <https://polytheme.dev/themes>: light and dark, on Tailwind's
 palette, every text pair checked against WCAG AA. They share one 26-token
 contract, so two packs combine into four modes rather than overwriting each
 other. Prefer these over inventing a token system from scratch.
