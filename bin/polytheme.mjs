@@ -18,10 +18,18 @@ import process from "node:process";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SKILL = resolve(HERE, "..", "skill");
 
-const DESTINATIONS = {
-  claude: ".claude/skills/polytheme",
-  cursor: ".cursor/rules/polytheme",
-};
+/*
+ * One default, and an escape hatch.
+ *
+ * SKILL.md with name/description frontmatter is the Agent Skills format, and
+ * .claude/skills is where that format is read from, so that is the only
+ * destination claimed here. Naming other tools would mean asserting their
+ * conventions — that Cursor reads a directory of .md under .cursor/rules, say,
+ * when its own format is .mdc files with different frontmatter. Better to point
+ * --dir at whatever an agent actually reads than to guess on its behalf, and it
+ * avoids singling one tool out.
+ */
+const DEFAULT_DIR = ".claude/skills/polytheme";
 
 async function version() {
   const pkg = JSON.parse(await readFile(resolve(HERE, "..", "package.json"), "utf8"));
@@ -31,23 +39,15 @@ async function version() {
 function usage() {
   console.log(`polytheme <command>
 
-  skill [--for <agent>] [--dir <path>]   Copy the Polytheme skill into this project
-                                         agent: claude (default), cursor
+  skill [--dir <path>]   Copy the Polytheme skill into this project.
+                         Defaults to .claude/skills/polytheme; point --dir at
+                         wherever your agent reads project rules from.
 
 Nothing else is installed and nothing is written outside the target directory.`);
 }
 
 async function installSkill(argv) {
-  const agent = valueOf(argv, "--for") ?? "claude";
-  const explicit = valueOf(argv, "--dir");
-
-  if (!explicit && !(agent in DESTINATIONS)) {
-    console.error(`Unknown agent "${agent}". Expected one of: ${Object.keys(DESTINATIONS).join(", ")}`);
-    process.exitCode = 1;
-    return;
-  }
-
-  const target = resolve(process.cwd(), explicit ?? DESTINATIONS[agent]);
+  const target = resolve(process.cwd(), valueOf(argv, "--dir") ?? DEFAULT_DIR);
 
   try {
     await stat(SKILL);
@@ -62,7 +62,6 @@ async function installSkill(argv) {
 
   const relative = target.replace(`${process.cwd()}/`, "");
   console.log(`Copied the Polytheme skill (v${await version()}) to ${relative}`);
-  console.log(`Your agent will pick it up from there — no config needed.`);
 }
 
 function valueOf(argv, flag) {

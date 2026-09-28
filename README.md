@@ -149,8 +149,8 @@ polytheme({ themes: [":root", ".dark", ".eclipse", ".eclipse-dark"] })
 Left alone, a coding assistant writes the very thing Polytheme deletes: a `:root` block and a matching `.dark` block, kept in sync by hand. The package ships a skill that corrects that:
 
 ```bash
-npx polytheme skill              # into .claude/skills/polytheme
-npx polytheme skill --for cursor # into .cursor/rules/polytheme
+npx polytheme skill                                  # into .claude/skills/polytheme
+npx polytheme skill --dir .cursor/rules/polytheme    # or wherever your agent reads rules
 ```
 
 It lives inside the package rather than on the website, so it always describes the version you have installed and can never claim a feature that is missing. Upgrade Polytheme and run it again to refresh the copy.

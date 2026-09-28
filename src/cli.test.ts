@@ -44,19 +44,11 @@ describe("npx polytheme skill", () => {
     expect(existsSync(join(scratch, "custom/place/SKILL.md"))).toBe(true);
   });
 
-  it("supports other agents", () => {
-    run(["skill", "--for", "cursor"]);
+  it("puts the skill anywhere an agent reads rules from", () => {
+    // No agent is named in the CLI, so this is the path for everything that is
+    // not Claude Code — asserting another tool's convention would be a guess.
+    run(["skill", "--dir", ".cursor/rules/polytheme"]);
     expect(existsSync(join(scratch, ".cursor/rules/polytheme/SKILL.md"))).toBe(true);
-  });
-
-  it("refuses an agent it does not know, rather than writing somewhere odd", () => {
-    let failed = false;
-    try {
-      execFileSync(execPath, [CLI, "skill", "--for", "nonsense"], { cwd: scratch, stdio: "pipe" });
-    } catch {
-      failed = true;
-    }
-    expect(failed).toBe(true);
   });
 
   it("prints usage when given nothing", () => {
