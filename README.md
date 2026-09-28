@@ -149,9 +149,15 @@ polytheme({ themes: [":root", ".dark", ".eclipse", ".eclipse-dark"] })
 Left alone, a coding assistant writes the very thing Polytheme deletes: a `:root` block and a matching `.dark` block, kept in sync by hand. The package ships a skill that corrects that:
 
 ```bash
-npx polytheme skill                                  # into .claude/skills/polytheme
-npx polytheme skill --dir .cursor/rules/polytheme    # or wherever your agent reads rules
+npx polytheme skill                   # .claude/skills/polytheme/SKILL.md
+npx polytheme skill --for cursor      # .cursor/rules/polytheme.mdc
+npx polytheme skill --for windsurf    # .windsurf/rules/polytheme.md
+npx polytheme skill --for copilot     # .github/instructions/polytheme.instructions.md
 ```
+
+Each writes the container format that tool actually reads, rather than the same file at a different path — a plain `.md` in `.cursor/rules` is ignored outright, because it carries none of the fields Cursor uses to decide when a rule applies. Using something else? `--dir` puts it wherever you say.
+
+Copilot gets its own scoped file rather than `.github/copilot-instructions.md`, which belongs to your project and should not be overwritten by a package.
 
 It lives inside the package rather than on the website, so it always describes the version you have installed and can never claim a feature that is missing. Upgrade Polytheme and run it again to refresh the copy.
 
