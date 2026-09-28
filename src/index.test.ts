@@ -1,4 +1,4 @@
-import postcss from "postcss";
+import postcss, { type Plugin } from "postcss";
 import { describe, expect, it } from "vitest";
 import plugin from "./index";
 
@@ -388,5 +388,75 @@ describe("theme-shorthand", () => {
     expect(result.css).not.toContain(".dark");
     expect(result.warnings()).toHaveLength(1);
     expect(result.warnings()[0].text).toContain("found 3 values for 2 themes");
+  });
+});
+
+/*
+ * The ignore directive, when another plugin has rewritten the tree first.
+ *
+ * `@tailwindcss/postcss` resolves `@import "tailwindcss"` by rebuilding the
+ * stylesheet: every comment is dropped and the declarations come back as new
+ * nodes. Polytheme runs after that, so the directive it was relying on had
+ * already been deleted — and `--ratio: 16 / 9` split silently into `16` and
+ * `9`, because with two themes that is exactly what a deliberate value looks
+ * like. Silent corruption, in the setup the plugin is named for.
+ *
+ * The stand-in below does only the part that matters, so the test says what
+ * broke rather than depending on Tailwind's internals.
+ */
+const stripsCommentsAndRebuilds: Plugin = {
+  postcssPlugin: "stands-in-for-tailwind",
+  Once(root) {
+    const rebuilt = postcss.parse(root.toString(), { from: root.source?.input.from });
+    rebuilt.walkComments((comment) => comment.remove());
+    root.removeAll();
+    root.append(rebuilt.nodes);
+  },
+};
+
+describe("a directive that another plugin has deleted", () => {
+  it("still opts the declaration out", async () => {
+    const css = ":root {\n  /* polytheme-ignore */\n  --ratio: 16 / 9;\n}";
+    const result = await postcss([
+      plugin({ themes: [":root", ".dark"] }),
+      stripsCommentsAndRebuilds,
+    ]).process(css, { from: "input.css" });
+
+    expect(result.css).toContain("--ratio: 16 / 9");
+    expect(result.css).not.toMatch(/\.dark/);
+    expect(result.warnings()).toHaveLength(0);
+  });
+
+  it("leaves the declarations either side of it alone", async () => {
+    const css =
+      ":root {\n  --bg: white / black;\n  /* polytheme-ignore */\n  --ratio: 16 / 9;\n  --fg: black / white;\n}";
+    const result = await postcss([
+      plugin({ themes: [":root", ".dark"] }),
+      stripsCommentsAndRebuilds,
+    ]).process(css, { from: "input.css" });
+
+    expect(result.css).toContain("--ratio: 16 / 9");
+    expect(result.css).toMatch(/\.dark\s*\{[^}]*--bg:\s*black/);
+    expect(result.css).toMatch(/\.dark\s*\{[^}]*--fg:\s*white/);
+    expect(result.css).not.toMatch(/\.dark\s*\{[^}]*--ratio/);
+  });
+
+  it("does not carry a mark from one file into the next", async () => {
+    // PostCSS reuses one plugin instance across every file in a build, so a
+    // mark kept in the plugin's own closure would leak between them.
+    const instance = plugin({ themes: [":root", ".dark"] });
+
+    await postcss([instance, stripsCommentsAndRebuilds]).process(
+      ":root {\n  /* polytheme-ignore */\n  --ratio: 16 / 9;\n}",
+      { from: "first.css" },
+    );
+
+    const second = await postcss([instance, stripsCommentsAndRebuilds]).process(
+      ":root {\n  --ratio: 16 / 9;\n}",
+      { from: "second.css" },
+    );
+
+    // Same position, different file, no directive: this one must expand.
+    expect(second.css).toMatch(/\.dark\s*\{[^}]*--ratio:\s*9/);
   });
 });

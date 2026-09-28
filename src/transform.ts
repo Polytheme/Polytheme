@@ -4,6 +4,7 @@ import postcss, {
   type Comment,
   type Container,
   type Declaration,
+  type Node,
   type Result,
   type Root,
   type Rule,
@@ -30,6 +31,48 @@ import { extractThemeValues, hasThemeShorthandSyntax } from "./parser";
  * themed tokens. Any rule that catches the ratio catches those too.
  */
 const IGNORE = /^\s*polytheme-ignore\s*$/;
+
+/*
+ * Where a node was written, as a string.
+ *
+ * The directive used to be read from the comment sitting in front of the
+ * declaration, which works right up until another plugin rebuilds the tree.
+ * `@tailwindcss/postcss` does exactly that while resolving `@import
+ * "tailwindcss"`: it drops every comment and hands back fresh nodes, so by the
+ * time this runs the mark is gone. `--ratio: 16 / 9` then split silently into
+ * `16` and `9` — the precise corruption the directive exists to prevent, in the
+ * setup the plugin is named for.
+ *
+ * Source positions do survive that rebuild, so the marks are read once before
+ * anything else runs and matched back by position here.
+ */
+export function positionOf(node: Node): string | null {
+  const start = node.source?.start;
+  if (!start) return null;
+
+  return `${node.source?.input.from ?? ""}|${start.line}|${start.column}`;
+}
+
+/*
+ * The declarations marked by a directive, read before any other plugin has had
+ * a chance to rewrite them away. Returns positions, not nodes: the nodes are
+ * not the same objects by the time the expansion runs.
+ */
+export function collectIgnored(root: Root): Set<string> {
+  const ignored = new Set<string>();
+
+  root.walkComments((comment) => {
+    if (!IGNORE.test(comment.text)) return;
+
+    const next = comment.next();
+    if (next?.type !== "decl") return;
+
+    const position = positionOf(next);
+    if (position) ignored.add(position);
+  });
+
+  return ignored;
+}
 
 /*
  * At-rules that group style rules, and so can hold an expansion.
@@ -100,7 +143,9 @@ function createThemeNode(theme: string): { node: ChildNode; target: Container } 
 export function transformThemeShorthand(
   root: Root,
   themes: string[],
-  result: Result
+  result: Result,
+  /* Positions marked before the run, for the case where the comment is gone. */
+  ignored: Set<string> = new Set()
 ) {
   // Keyed by container first: two shorthands under different at-rules must not
   // share an expansion, however alike their themes look.
@@ -130,13 +175,18 @@ export function transformThemeShorthand(
     if (!decl.prop.startsWith("--")) return;
 
     const previous = decl.prev();
+    const marked = previous?.type === "comment" && IGNORE.test(previous.text);
 
-    if (previous?.type === "comment" && IGNORE.test(previous.text)) {
+    if (marked) {
       // The directive is build input, not part of the stylesheet, so it does
       // not survive into the output the way an ordinary comment does.
-      directives.add(previous);
+      directives.add(previous as Comment);
       return;
     }
+
+    // The comment is gone, but the declaration is still where it was written.
+    const position = positionOf(decl);
+    if (position && ignored.has(position)) return;
 
     const values = extractThemeValues(decl.value);
 
