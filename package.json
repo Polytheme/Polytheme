@@ -42,8 +42,13 @@
     },
     "./package.json": "./package.json"
   },
+  "bin": {
+    "polytheme": "./bin/polytheme.mjs"
+  },
   "files": [
-    "dist"
+    "dist",
+    "skill",
+    "bin"
   ],
   "scripts": {
     "build": "tsup",
