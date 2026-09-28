@@ -121,7 +121,9 @@ if (siteOnly) {
   const serving = sh("npm", ["view", `${name}@latest`, "version"]);
   step(`syncing the website to npm's ${serving}`);
   await syncSite(serving);
-  console.log(`\n✓ the site is deployed against ${serving}`);
+  console.log(`\n✓ the website now builds against ${serving}, and is pushed`);
+  console.log(`  Not deployed: polytheme.dev has no CI. Send it out with:`);
+  console.log(`      cd ${SITE} && npx wrangler deploy`);
   process.exit(0);
 }
 
@@ -331,4 +333,6 @@ async function syncSite(version) {
 
 await syncSite(version);
 
-console.log(`\n✓ ${version} is live on npm and the site is deployed against it`);
+console.log(`\n✓ ${version} is live on npm, and the website is pushed building against it`);
+console.log(`  Not deployed: polytheme.dev has no CI. Send it out with:`);
+console.log(`      cd ${SITE} && npx wrangler deploy`);
