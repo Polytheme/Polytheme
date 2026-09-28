@@ -215,18 +215,69 @@ console.log(`  The workflow stages it:  https://github.com/Polytheme/Polytheme/a
 console.log(`  Then approve it here:    https://www.npmjs.com/package/${name}`);
 console.log(`  This will carry on by itself once npm is serving it.`);
 
+/*
+ * Fetch the tarball, rather than ask whether the version exists.
+ *
+ * `npm view <pkg>@<version>` answers from the packument, and a staged publish
+ * is already in the packument — it even moves `dist-tags.latest` — while the
+ * tarball stays unreachable until a person approves it. So the obvious check
+ * reported 1.1.0 as live the moment it was staged, the run marched on, and the
+ * website install failed with a 404 on a version npm had just claimed to
+ * serve. Worse, `latest` pointed at something nobody could install, so plain
+ * `npm install polytheme` was broken for everyone until the approval landed.
+ *
+ * Downloading the artifact is the only question worth asking: it is exactly
+ * what a user's install does.
+ */
+async function installable() {
+  let url;
+  try {
+    url = sh("npm", ["view", `${name}@${version}`, "dist.tarball"]);
+  } catch {
+    return false; // Not even in the packument yet.
+  }
+  if (!url) return false;
+
+  try {
+    const response = await fetch(url, { method: "HEAD" });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 // Long, because a person has to promote the staged version in between.
 const deadline = Date.now() + 45 * 60 * 1000;
 let live = false;
+let staged = false;
 while (Date.now() < deadline) {
-  try {
-    sh("npm", ["view", `${name}@${version}`, "version"]);
+  if (await installable()) {
     live = true;
     break;
-  } catch {
-    process.stdout.write(".");
-    await new Promise((r) => setTimeout(r, 10_000));
   }
+
+  /*
+   * Said once, when the version first appears without its tarball: from here
+   * until approval, `npm install <pkg>` is broken for everyone, because
+   * `latest` already points at a version that cannot be downloaded.
+   */
+  if (!staged) {
+    try {
+      sh("npm", ["view", `${name}@${version}`, "version"]);
+      staged = true;
+      console.log(
+        `\n  ! ${version} is staged but not approved, and npm has already moved\n` +
+          `    'latest' onto it — so 'npm install ${name}' is failing for everyone\n` +
+          `    until it is approved. Approve it now, or put the tag back with:\n` +
+          `        npm dist-tag add ${name}@${current} latest`,
+      );
+    } catch {
+      // Not staged yet either; nothing to warn about.
+    }
+  }
+
+  process.stdout.write(".");
+  await new Promise((r) => setTimeout(r, 10_000));
 }
 console.log("");
 
